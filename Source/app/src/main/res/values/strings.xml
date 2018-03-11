@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Sudoku_Solver</string>
+    <string name="button_All_Grids">My Sudoku grids</string>
+    <string name="title_activity_existing_grids">ExistingGrids</string>
 </resources>
