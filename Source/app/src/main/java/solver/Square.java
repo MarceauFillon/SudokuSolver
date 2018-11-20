@@ -4,15 +4,20 @@ import android.app.Activity;
 import android.graphics.Color;
 import android.text.InputFilter;
 import android.text.InputType;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.GridLayout;
 import android.widget.TextView;
 
 import com.vertuoses.sudoku_solver.R;
 
 import org.w3c.dom.Text;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import static android.content.ContentValues.TAG;
 
 /**
  * Created by Marceau on 02/02/2018.
@@ -22,13 +27,11 @@ public class Square {
     private List<Integer> possibleValues;
     private int value;
     private EditText textView;
+    private int viewID;
 
     public Square()
     {
-        for(int i=0;i<10;i++)
-        {
-           this.possibleValues.add(i);
-        }
+        FillPossiblesValues();
 
         value = 0;
     }
@@ -51,6 +54,8 @@ public class Square {
 
         int padding = GetDpToPixels(0.5,activity);
         this.textView.setPadding(padding,padding,padding,padding);
+        this.viewID = this.textView.generateViewId();
+        this.textView.setId(this.viewID);
 
         if(value!=0)
         {
@@ -58,7 +63,11 @@ public class Square {
             this.textView.setEnabled(false);
             this.textView.setTextColor(Color.parseColor("#990000"));
         }
-
+        else
+        {
+            this.textView.setEnabled(false);
+            FillPossiblesValues();
+        }
     }
 
     public int GetValue()
@@ -66,18 +75,28 @@ public class Square {
         return this.value;
     }
 
-    public boolean SetValue(int value)
+    public boolean SetValue(int value, Activity gridActivity)
     {
-        if(value>0 && value<10 && this.possibleValues.contains(value))
-        {
-            this.value=value;
-            this.possibleValues.clear();
-            return true;
+        boolean res = false;
+        try{
+            if(value>0 && value<10 && this.possibleValues.contains(value))
+            {
+                this.value=value;
+                this.possibleValues.clear();
+
+                TextView temporaryView = gridActivity.findViewById(this.GetViewID());
+                temporaryView.setText(String.valueOf(this.value));
+                temporaryView.setEnabled(false);
+                temporaryView.setBackgroundColor(Color.RED);
+                res = true;
+            }
         }
-        else
+        catch(Exception e)
         {
-            return false;
+            Log.e(TAG, "SetValue failed");
         }
+
+        return res;
     }
 
     public List<Integer> GetPossibleValues()
@@ -87,7 +106,7 @@ public class Square {
 
     public boolean HasOnlyOnePossibility()
     {
-        if(this.possibleValues.size()==1)
+        if(this.possibleValues!=null && this.possibleValues.size()==1)
         {
             return true;
         }
@@ -103,7 +122,7 @@ public class Square {
         {
             if(this.possibleValues.contains(valueToRemove))
             {
-                this.possibleValues.remove(valueToRemove);
+                this.possibleValues.remove(this.possibleValues.indexOf(valueToRemove));
                 return true;
             }
 
@@ -117,7 +136,7 @@ public class Square {
 
     }
 
-    public boolean SetLastPossibleValue()
+    public boolean SetLastPossibleValue(Activity gridActivity)
     {
         if(!this.HasOnlyOnePossibility() || this.possibleValues.isEmpty())
         {
@@ -125,20 +144,30 @@ public class Square {
         }
         else
         {
-            this.value=this.possibleValues.get(0);
+            this.SetValue(this.possibleValues.get(0),gridActivity);
             this.possibleValues.clear();
             return true;
         }
     }
 
-    public TextView GetTextView()
+    public TextView GetTextView(int positionX, int positionY)
     {
+        GridLayout.LayoutParams parameters = new GridLayout.LayoutParams();
+        parameters.columnSpec=GridLayout.spec(positionY);
+        parameters.rowSpec=GridLayout.spec(positionX);
+        this.textView.setLayoutParams(parameters);
         return this.textView;
     }
 
-    public void SetTextView(EditText value)
+    public void SetValueInTextView(int value)
     {
-        this.textView = value;
+        this.textView.setText(String.valueOf(value));
+        this.textView.setEnabled(false);
+    }
+
+    public int GetViewID()
+    {
+        return viewID;
     }
 
     static public int GetDpToPixels(double sizeIndDp, Activity activity)
@@ -147,4 +176,15 @@ public class Square {
         int pixels = (int) (sizeIndDp * scale + 0.5f);
         return pixels;
     }
+
+    private void FillPossiblesValues()
+    {
+        this.possibleValues = new ArrayList<>();
+        for(int i=1;i<10;i++)
+        {
+            this.possibleValues.add(i);
+        }
+    }
+
+
 }

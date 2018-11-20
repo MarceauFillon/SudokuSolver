@@ -56,6 +56,7 @@ public class ExistingGrids extends AppCompatActivity {
 
                 Intent intent = new Intent(ExistingGrids.this, GridDisplay.class);
                 intent.putExtra("pathToGrid",gridItem.get("path"));
+                intent.putExtra("grid",new Grid());
 
                 startActivity(intent);
             }
